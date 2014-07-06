@@ -1,76 +1,91 @@
-  
+import processing.net.*; 
+Client client; 
 
-BufferedReader reader;
-String line;
+int t0 = -1;
 
-int qmax = 0, qmin = 10000000;
- 
-int D[][] = new int[1000000][5];
-int Q[] = new int[1000000];
-int n = 0;
- 
-void setup() {
-  size(600, 127 * 5);
-  reader = createReader("varezhka-R1.1.txt");
+int t_width_ms = 30000;
 
-  try {
-    for (n = 0; ; n++)  {
-      line = reader.readLine();
-      if (line == null)
-        break;
-      String[] pieces = split(line, ' ');   
-      D[n][0] = height - unhex(pieces[0]);
-      D[n][1] = height - unhex(pieces[1]);
-      D[n][2] = height - unhex(pieces[2]);
-      D[n][3] = height - unhex(pieces[3]);
-      D[n][4] = height - unhex(pieces[4]);
-      Q[n]    = int(pieces[5]);
-      qmax = max(qmax, Q[n]);
-      qmin = min(qmin, Q[n]);
-    }
-  } catch (IOException e) {
-    e.printStackTrace();
-    line = null;
-  }  
-  
+int prev_t = -1; 
+int[] prev_D = new int[5];
 
-}
+int S = 127;
 
- 
-void draw() { 
-    
+void start_plot() {
   fill(255, 255, 255);
   rect(0,0,width, height);
   fill(0, 0, 0);
-  textSize(30);
-  
-  int S = 127;
+  textSize(30);  
+
   for (int i = 0; i < 5; i++)
   {
-    line(0, height - i*S, width, height - i*S);
+    //line(0, height - i*S, width, height - i*S);
     text(str(i+1), 10, height - i*S);
   }
   
-  line(0, height - 1*S, width, height - 1*S);
-  line(0, height - 2*S, width, height - 2*S);
-  line(0, height - 3*S, width, height - 3*S);
-  line(0, height - 4*S, width, height - 4*S);
-  line(0, height - 5*S, width, height - 5*S);
+  t0 = -1;
+  prev_t = -1;
+}
 
-
-  for (int i = 0; i < n; i++) {
-    int t = ((Q[i] - qmin) * width) / (qmax - qmin);
+boolean connect() {
+  if (client == null || !client.active())
+    client = new Client(this, "127.0.0.1", 11003);  
   
-    int i1 = max(0, i-1);
-    int t1 = ((Q[i1] - qmin) * width) / (qmax - qmin); 
-    
-    line(t1, D[i1][0] - 0*S, t, D[i][0] - 0*S);
-    line(t1, D[i1][1] - 1*S, t, D[i][1] - 1*S);
-    line(t1, D[i1][2] - 2*S, t, D[i][2] - 2*S);
-    line(t1, D[i1][3] - 3*S, t, D[i][3] - 3*S);
-    line(t1, D[i1][4] - 4*S, t, D[i][4] - 4*S);
-
+  if (!client.active())
+  {
+    client = null;
+    print(millis(), '\n');
   }
-  noLoop();
+
+  return (client != null);  
+}
+ 
+void setup() { 
+  size(600, 127 * 5);
+  start_plot();  
 } 
+ 
+void draw() {   
+  if (!connect())  
+    return;
+  
+  if (client.available() <= 0)
+    return;
+ 
+  String line = client.readStringUntil('\n');
+  print(line);
+  String[] pieces = split(line, ' ');
+  if (pieces == null)
+    return;
+  
+  int D[] = new int[5];
+  if (D.length < 5)
+    return;
+    
+  
+  for (int i = 0; i < 5; i++)
+    D[i] = int(pieces[i]);
+  int t_ms = int(pieces[5]);
+  
+  if (t_ms > t0 + t_width_ms)
+    start_plot();
+  
+  if (t0 < 0)
+    t0 = t_ms;
+  
+  int tpix = (t_ms - t0) * width / t_width_ms;
+  boolean prev_stored = (prev_t >= 0);
+  if (!prev_stored) {
+     prev_t = tpix;
+     for (int i = 0; i < 5; i++)
+        prev_D[i] = D[i];
+  }       
+  
+  for (int i = 0; i < 5; i++)
+  {
+    line(prev_t, height - prev_D[i] - S *i , tpix, height - D[i] - S*i);
+    prev_D[i] = D[i];
+  }    
+  prev_t = tpix;    
+
+}
 
