@@ -11,6 +11,9 @@ int idx_time = 10;
 
 int S = 128;
 
+int window_width_pix = 600, window_height_pix  = 128 * 5 + 5;
+int plot_width_pix = 600, plot_height_pix = 128*5;
+
 void start_plot() {
   stroke(0,0,0);
   fill(255, 255, 255);
@@ -20,8 +23,8 @@ void start_plot() {
 
   for (int i = 0; i < 5; i++)
   {
-    line(0, height - i*S, width, height - i*S);
-    text(str(i+1), 10, height - i*S);
+    line(0, plot_height_pix - i*S, plot_width_pix, plot_height_pix - i*S);
+    text(str(i+1), 10, plot_height_pix - i*S);
   }
   
   t0 = -1;
@@ -42,7 +45,7 @@ boolean connect() {
 }
  
 void setup() { 
-  size(600, 128 * 5);
+  size(window_width_pix, window_height_pix);
   start_plot();  
 } 
  
@@ -72,7 +75,7 @@ void draw() {
   if (t0 < 0)
     t0 = t_ms;
   
-  int tpix = (t_ms - t0) * width / t_width_ms;
+  int tpix = (t_ms - t0) * plot_width_pix / t_width_ms;
   boolean prev_stored = (prev_t >= 0);
   if (!prev_stored) {
      prev_t = tpix;
@@ -83,14 +86,14 @@ void draw() {
   stroke(0,0,0);
   for (int i = 0; i < 5; i++)
   {    
-    line(prev_t, height - prev_D[i] - S *i , tpix, height - D[i] - S*i);
+    line(prev_t, plot_height_pix - prev_D[i] - S *i , tpix, plot_height_pix - D[i] - S*i);
     prev_D[i] = D[i];
   }    
   
   stroke(255,0,0);
   for (int i = 5; i < 10; i++)
   {    
-    line(prev_t, height - prev_D[i] - S*(i - 5), tpix, height - D[i] - S*(i - 5));
+    line(prev_t, plot_height_pix - prev_D[i] - S*(i - 5), tpix, plot_height_pix - D[i] - S*(i - 5));
     prev_D[i] = D[i];
   }    
   prev_t = tpix;    
