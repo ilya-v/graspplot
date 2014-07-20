@@ -3,14 +3,16 @@ Client client;
 
 int t0 = -1;
 
-int t_width_ms = 30000;
+int t_width_ms = 10000;
 
 int prev_t = -1; 
-int[] prev_D = new int[5];
+int[] prev_D = new int[10];
+int idx_time = 10;
 
-int S = 127;
+int S = 128;
 
 void start_plot() {
+  stroke(0,0,0);
   fill(255, 255, 255);
   rect(0,0,width, height);
   fill(0, 0, 0);
@@ -18,7 +20,7 @@ void start_plot() {
 
   for (int i = 0; i < 5; i++)
   {
-    //line(0, height - i*S, width, height - i*S);
+    line(0, height - i*S, width, height - i*S);
     text(str(i+1), 10, height - i*S);
   }
   
@@ -40,7 +42,7 @@ boolean connect() {
 }
  
 void setup() { 
-  size(600, 127 * 5);
+  size(600, 128 * 5);
   start_plot();  
 } 
  
@@ -52,19 +54,17 @@ void draw() {
     return;
  
   String line = client.readStringUntil('\n');
-  print(line);
+  if (line == null)
+    return;
   String[] pieces = split(line, ' ');
   if (pieces == null)
     return;
   
-  int D[] = new int[5];
-  if (D.length < 5)
-    return;
-    
+  int D[] = new int[10];
   
-  for (int i = 0; i < 5; i++)
+  for (int i = 0; i < 10; i++)
     D[i] = int(pieces[i]);
-  int t_ms = int(pieces[5]);
+  int t_ms = int(pieces[idx_time].trim());
   
   if (t_ms > t0 + t_width_ms)
     start_plot();
@@ -76,13 +76,21 @@ void draw() {
   boolean prev_stored = (prev_t >= 0);
   if (!prev_stored) {
      prev_t = tpix;
-     for (int i = 0; i < 5; i++)
+     for (int i = 0; i < 10; i++)
         prev_D[i] = D[i];
   }       
   
+  stroke(0,0,0);
   for (int i = 0; i < 5; i++)
-  {
+  {    
     line(prev_t, height - prev_D[i] - S *i , tpix, height - D[i] - S*i);
+    prev_D[i] = D[i];
+  }    
+  
+  stroke(255,0,0);
+  for (int i = 5; i < 10; i++)
+  {    
+    line(prev_t, height - prev_D[i] - S*(i - 5), tpix, height - D[i] - S*(i - 5));
     prev_D[i] = D[i];
   }    
   prev_t = tpix;    
