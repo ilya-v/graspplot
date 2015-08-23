@@ -53,50 +53,50 @@ void draw() {
   if (!connect())  
     return;
   
-  if (client.available() <= 0)
-    return;
- 
-  String line = client.readStringUntil('\n');
-  if (line == null)
-    return;
-  String[] pieces = split(line, ' ');
-  if (pieces == null)
-    return;
-  
-  int D[] = new int[10];
-  
-  for (int i = 0; i < 10; i++)
-    D[i] = int(pieces[i]);
-  int t_ms = int(pieces[idx_time].trim());
-  
-  if (t_ms > t0 + t_width_ms)
-    start_plot();
-  
-  if (t0 < 0)
-    t0 = t_ms;
-  
-  int tpix = (t_ms - t0) * plot_width_pix / t_width_ms;
-  boolean prev_stored = (prev_t >= 0);
-  if (!prev_stored) {
-     prev_t = tpix;
-     for (int i = 0; i < 10; i++)
-        prev_D[i] = D[i];
-  }       
-  
-  stroke(0,0,0);
-  for (int i = 0; i < 5; i++)
-  {    
-    line(prev_t, plot_height_pix - prev_D[i] - S *i , tpix, plot_height_pix - D[i] - S*i);
-    prev_D[i] = D[i];
-  }    
-  
-  stroke(255,0,0);
-  for (int i = 5; i < 10; i++)
-  {    
-    line(prev_t, plot_height_pix - prev_D[i] - S*(i - 5), tpix, plot_height_pix - D[i] - S*(i - 5));
-    prev_D[i] = D[i];
-  }    
-  prev_t = tpix;    
+  while (client.available() > 0)  {
+     
+    String line = client.readStringUntil('\n');
+    if (line == null)
+      continue;
+    String[] pieces = split(line, ' ');
+    if (pieces == null)
+      continue;
+    
+    int D[] = new int[10];
+    
+    for (int i = 0; i < 10; i++)
+      D[i] = int(pieces[i]);
+    int t_ms = int(pieces[idx_time].trim());
+    
+    if (t_ms > t0 + t_width_ms)
+      start_plot();
+    
+    if (t0 < 0)
+      t0 = t_ms;
+    
+    int tpix = (t_ms - t0) * plot_width_pix / t_width_ms;
+    boolean prev_stored = (prev_t >= 0);
+    if (!prev_stored) {
+       prev_t = tpix;
+       for (int i = 0; i < 10; i++)
+          prev_D[i] = D[i];
+    }       
+    
+    stroke(0,0,0);
+    for (int i = 0; i < 5; i++)
+    {    
+      line(prev_t, plot_height_pix - prev_D[i] - S *i , tpix, plot_height_pix - D[i] - S*i);
+      prev_D[i] = D[i];
+    }    
+    
+    stroke(255,0,0);
+    for (int i = 5; i < 10; i++)
+    {    
+      line(prev_t, plot_height_pix - prev_D[i] - S*(i - 5), tpix, plot_height_pix - D[i] - S*(i - 5));
+      prev_D[i] = D[i];
+    }    
+    prev_t = tpix;    
+  }
 
 }
 
